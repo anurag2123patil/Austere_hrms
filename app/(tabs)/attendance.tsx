@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { DatePickerModal } from "react-native-paper-dates";
-
 import {
   View,
   Text,
@@ -38,8 +37,10 @@ import { Svg, Circle } from 'react-native-svg';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import dayjs from 'dayjs';
 import WheelPickerExpo from 'react-native-wheel-picker-expo';
+
 dayjs.extend(customParseFormat);
 const { width } = Dimensions.get('window');
+
 interface TransformedAttendanceRecord {
   id: number;
   date: string;
@@ -50,21 +51,8 @@ interface TransformedAttendanceRecord {
   totalSeconds?: number;
 }
 
-
 export default function Attendance() {
   const today = new Date();
-
-  useEffect(() => {
-    // Run once when the page/component loads
-    const start = dayjs(today).startOf('month').format('YYYY-MM-DD');
-    const end = dayjs(today).endOf('month').format('YYYY-MM-DD');
-    fetchAttendanceAnalytics(start, end);
-
-    // Optional: set the wheel state to today (already done above)
-    setSelectedDay(today.getDate());
-    setSelectedMonth(today.getMonth());
-    setSelectedYear(today.getFullYear());
-  }, []);
   const dispatch = useDispatch<AppDispatch>();
   const { theme } = useSelector((state: RootState) => state.auth);
   const { records, stats, isCheckedIn, todayRecord, loading } = useSelector((state: RootState) => state.attendance);
@@ -75,10 +63,10 @@ export default function Attendance() {
   const [record, setRecord] = useState<TransformedAttendanceRecord[]>([]);
 
   const currentYear = new Date().getFullYear();
-  const [selectedDay, setSelectedDay] = useState(1);
-  const [selectedMonth, setSelectedMonth] = useState(0); // 0 = January
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
+  const [selectedDay, setSelectedDay] = useState(today.getDate());
+  const [selectedMonth, setSelectedMonth] = useState(today.getMonth()); // 0 = January
+  const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
   const months = [
@@ -86,26 +74,6 @@ export default function Attendance() {
     "July", "August", "September", "October", "November", "December"
   ];
   const years = Array.from({ length: currentYear - 2019 + 1 }, (_, i) => 2020 + i);
-
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  useEffect(() => {
-    // Run once when the page/component loads
-    const start = dayjs(today).startOf('month').format('YYYY-MM-DD');
-    const end = dayjs(today).endOf('month').format('YYYY-MM-DD');
-    fetchAttendanceAnalytics(start, end);
-
-    // Optional: set the wheel state to today (already done above)
-    setSelectedDay(today.getDate());
-    setSelectedMonth(today.getMonth());
-    setSelectedYear(today.getFullYear());
-  }, []);
-  // const [selectedMonth, setSelectedMonth] = useState(() => {
-  //   const now = new Date();
-  //   return new Date(now.getFullYear(), now.getMonth(), 1);
-  // });
-
-  // const [showPicker, setShowPicker] = useState(false);
-  // const [selectedDate, setSelectedDate] = useState(new Date());
 
   const [performanceMetrics, setPerformanceMetrics] = useState<
     { label: string; value: string; icon: any; color: string; trend: string }[]
@@ -122,8 +90,8 @@ export default function Attendance() {
     total_hours: 0
   });
 
+  // Animation effects
   React.useEffect(() => {
-    // Enhanced pulse animation
     pulseScale.value = withRepeat(
       withSequence(
         withSpring(1.05, { damping: 15 }),
@@ -133,7 +101,6 @@ export default function Attendance() {
       true
     );
 
-    // Glow effect for check-in button
     glowOpacity.value = withRepeat(
       withSequence(
         withSpring(0.6, { duration: 1500 }),
@@ -153,55 +120,120 @@ export default function Attendance() {
     transform: [{ scale: interpolate(glowOpacity.value, [0.3, 0.6], [1, 1.1]) }],
   }));
 
-  useEffect(() => {
-    dispatch(getAttendanceStatusThunk());
+  // Load attendance data function
+  const loadAttendance = useCallback(async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const empId = await AsyncStorage.getItem('User_id');
+
+      if (token && empId) {
+        const { records } = await fetchEmployeeAttendanceRecords(empId, token);
+        const transformed = transformAttendanceRecords(records);
+        setRecord(transformed);
+      }
+    } catch (error) {
+      console.error('Failed to load attendance records:', error);
+    }
   }, []);
 
+  const fetchAttendanceAnalytics = useCallback(async (monthStart: string, monthEnd: string) => {
+    try {
+      const data = await fetchMonthlyAttendance(monthStart, monthEnd);
+      const totalDays = dayjs(monthEnd).diff(dayjs(monthStart), 'day') + 1;
+      const efficiency = totalDays > 0 ? Math.round((data.present_days / totalDays) * 100) : 0;
+
+      setAttendanceStats({
+        presentDays: data.present_days,
+        totalDays: totalDays,
+        averageHours: parseFloat(data.average_hours_per_day?.toFixed(1) || '0'),
+        attendancePercent: Math.round(data.attendance_percent || 0),
+        efficiency: efficiency,
+        half_days: data.half_days,
+        absent_days: data.absent_days,
+        total_hours: data.total_hours
+      });
+    } catch (err) {
+      console.error('Failed to fetch attendance data:', err);
+    }
+  }, []);
+
+  // Load weekly metrics function
+  const loadWeeklyMetrics = useCallback(async () => {
+    try {
+      const data = await fetchWeeklyAttendance();
+      console.log('Weekly performance data:', data);
+
+      const expectedHours = data.present_days * 8;
+      const efficiency = expectedHours && data.total_hours
+        ? ((parseFloat(data.total_hours) / expectedHours) * 100).toFixed(1)
+        : '0';
+
+      const rating = data.attendance_percent
+        ? (data.attendance_percent / 20).toFixed(1)
+        : '0';
+
+      const updatedMetrics = [
+        { label: 'This Week', value: `${data.total_hours ? parseFloat(data.total_hours).toFixed(1) : '0.0'}h`, icon: Timer, color: '#f24637', trend: '' },
+        { label: 'Avg Daily', value: `${data.average_hours_per_day ? data.average_hours_per_day.toFixed(1) : '0.0'}h`, icon: Target, color: '#10B981', trend: '' },
+        { label: 'Efficiency', value: `${efficiency}%`, icon: Zap, color: '#8B5CF6', trend: '' },
+        { label: 'Rating', value: `${rating}`, icon: Award, color: '#F59E0B', trend: '' },
+      ];
+
+      setPerformanceMetrics(updatedMetrics);
+    } catch (error) {
+      console.warn('Failed to load performance metrics:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // MAIN INITIALIZATION EFFECT - RUNS ONCE WHEN COMPONENT MOUNTS
   useEffect(() => {
-    const loadWeeklyMetrics = async () => {
+    const initializeData = async () => {
       try {
-        const data = await fetchWeeklyAttendance();
-        console.log('Weekly performance data:', data);
+        // Set current date
+        const start = dayjs(today).startOf('month').format('YYYY-MM-DD');
+        const end = dayjs(today).endOf('month').format('YYYY-MM-DD');
 
-        const expectedHours = data.present_days * 8;
-        const efficiency = expectedHours && data.total_hours
-          ? ((parseFloat(data.total_hours) / expectedHours) * 100).toFixed(1)
-          : '0';
+        // Load all data in parallel
+        await Promise.all([
+          fetchAttendanceAnalytics(start, end),
+          loadAttendance(),
+          loadWeeklyMetrics()
+        ]);
 
-        const rating = data.attendance_percent
-          ? (data.attendance_percent / 20).toFixed(1)
-          : '0';
+        // Dispatch Redux actions
+        dispatch(getAttendanceStatusThunk());
+        dispatch(getEmployeeDurationThunk());
 
-        const updatedMetrics = [
-          { label: 'This Week', value: `${data.total_hours ? parseFloat(data.total_hours).toFixed(1) : '0.0'}h`, icon: Timer, color: '#f24637', trend: '' },
-          { label: 'Avg Daily', value: `${data.average_hours_per_day ? data.average_hours_per_day.toFixed(1) : '0.0'}h`, icon: Target, color: '#10B981', trend: '' },
-          { label: 'Efficiency', value: `${efficiency}%`, icon: Zap, color: '#8B5CF6', trend: '' },
-          { label: 'Rating', value: `${rating}`, icon: Award, color: '#F59E0B', trend: '' },
-        ];
-
-        setPerformanceMetrics(updatedMetrics);
       } catch (error) {
-        console.warn('Failed to load performance metrics:', error);
-      } finally {
-        setIsLoading(false);
+        console.error('Failed to initialize attendance data:', error);
       }
     };
 
-    loadWeeklyMetrics();
-  }, []);
+    initializeData();
+  }, []); // Empty dependency array - runs only once on mount
+
+  // Effect for auto-refresh when checked in
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isCheckedIn) {
+        dispatch(getEmployeeDurationThunk());
+      }
+    }, 300000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [isCheckedIn, dispatch]);
 
   const handleCheckIn = async () => {
     try {
       await dispatch(punchInThunk()).unwrap();
       Alert.alert('Success', 'Punched In successfully!');
+      // Refresh data after check-in
+      dispatch(getAttendanceStatusThunk());
       loadAttendance();
     } catch (error: unknown) {
-      const message =
-        typeof error === 'string'
-          ? error
-          : error instanceof Error
-            ? error.message
-            : 'Something went wrong while punching in.';
+      const message = error instanceof Error ? error.message : 'Something went wrong while punching in.';
       Alert.alert('Error', message);
     }
   };
@@ -210,18 +242,27 @@ export default function Attendance() {
     try {
       await dispatch(punchOutThunk()).unwrap();
       Alert.alert('Success', 'Punched Out successfully!');
+      // Refresh data after check-out
+      dispatch(getAttendanceStatusThunk());
       loadAttendance();
     } catch (error: unknown) {
-      const message =
-        typeof error === 'string'
-          ? error
-          : error instanceof Error
-            ? error.message
-            : 'Something went wrong while punching out.';
+      const message = error instanceof Error ? error.message : 'Something went wrong while punching out.';
       Alert.alert('Error', message);
     }
   };
 
+  const handleMonthChange = () => {
+    setShowDatePicker(false);
+
+    // Create a date from the selected month and year
+    const date = new Date(selectedYear, selectedMonth, 1);
+    const start = dayjs(date).startOf('month').format('YYYY-MM-DD');
+    const end = dayjs(date).endOf('month').format('YYYY-MM-DD');
+
+    fetchAttendanceAnalytics(start, end);
+  };
+
+  // Rest of your helper functions (getStatusColor, getStatusIcon, formatDate, etc.)
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'present': return '#10B981';
@@ -281,13 +322,11 @@ export default function Attendance() {
           status: 'present',
         };
       } else {
-        // earliest in
         if (punchInDate && (!groupedByDate[date].checkIn ||
           punchInDate.isBefore(dayjs(`${date} ${groupedByDate[date].checkIn}`, 'YYYY-MM-DD hh:mm A')))) {
           groupedByDate[date].checkIn = punchInDate.format('hh:mm A');
         }
 
-        // latest out
         if (punchOutDate && (!groupedByDate[date].checkOut ||
           punchOutDate.isAfter(dayjs(`${date} ${groupedByDate[date].checkOut}`, 'YYYY-MM-DD hh:mm A')))) {
           groupedByDate[date].checkOut = punchOutDate.format('hh:mm A');
@@ -303,8 +342,7 @@ export default function Attendance() {
     return Object.values(groupedByDate).map((entry) => {
       const totalSeconds = entry.totalSeconds || 0;
       const formattedHHMM = formatSecondsToHHMM(totalSeconds);
-
-      const hoursOnly = totalSeconds / 3600; // for status check
+      const hoursOnly = totalSeconds / 3600;
 
       return {
         ...entry,
@@ -320,64 +358,6 @@ export default function Attendance() {
       };
     });
   };
-
-  useEffect(() => {
-    loadAttendance();
-  }, []);
-
-  const loadAttendance = async () => {
-    const token = await AsyncStorage.getItem('token');
-    const empId = await AsyncStorage.getItem('User_id');
-
-    if (token && empId) {
-      const { records } = await fetchEmployeeAttendanceRecords(empId, token);
-      const transformed = transformAttendanceRecords(records);
-      setRecord(transformed);
-    }
-  };
-
-  const fetchAttendanceAnalytics = (monthStart: string, monthEnd: string) => {
-    fetchMonthlyAttendance(monthStart, monthEnd)
-      .then((data) => {
-        const totalDays = dayjs(monthEnd).diff(dayjs(monthStart), 'day') + 1;
-        const efficiency =
-          totalDays > 0 ? Math.round((data.present_days / totalDays) * 100) : 0;
-
-        setAttendanceStats({
-          presentDays: data.present_days,
-          totalDays: totalDays,
-          averageHours: parseFloat(data.average_hours_per_day?.toFixed(1) || '0'),
-          attendancePercent: Math.round(data.attendance_percent || 0),
-          efficiency: efficiency,
-          half_days: data.half_days,
-          absent_days: data.absent_days,
-          total_hours: data.total_hours
-        });
-      })
-      .catch((err) => {
-        console.error('Failed to fetch attendance data:', err);
-      });
-  };
-
-  const handleMonthChange = (event: any, date?: Date) => {
-    setShowDatePicker(false);
-    if (date) {
-      const newMonth = dayjs(date);
-      setSelectedMonth(newMonth.toDate());
-
-      const start = newMonth.startOf('month').format('YYYY-MM-DD');
-      const end = newMonth.endOf('month').format('YYYY-MM-DD');
-
-      fetchAttendanceAnalytics(start, end);
-    }
-  };
-
-  useEffect(() => {
-    const start = dayjs(selectedMonth).startOf('month').format('YYYY-MM-DD');
-    const end = dayjs(selectedMonth).endOf('month').format('YYYY-MM-DD');
-
-    fetchAttendanceAnalytics(start, end);
-  }, []);
 
   const quickActions = [
     {
@@ -396,20 +376,6 @@ export default function Attendance() {
     },
   ];
 
-  useEffect(() => {
-    dispatch(getAttendanceStatusThunk());
-    dispatch(getEmployeeDurationThunk());
-  }, [dispatch]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (isCheckedIn) {
-        dispatch(getEmployeeDurationThunk());
-      }
-    }, 300000); // Increased to 5 minutes to reduce API calls
-
-    return () => clearInterval(interval);
-  }, [isCheckedIn, dispatch]);
 
   return (
     <View style={[{ flex: 1 }, isDark && styles.darkContainer]}>
@@ -682,8 +648,9 @@ export default function Attendance() {
         ]}>
           <View style={[styles.performanceCard, isDark && styles.darkCard]}>
             <View style={styles.performanceHeader}>
+              // Fix the performance title to show correct month and year
               <Text style={[styles.performanceTitle, isDark && styles.darkText]}>
-                {dayjs(selectedMonth).format('MMMM YYYY')} Analytics
+                {dayjs(new Date(selectedYear, selectedMonth, 1)).format('MMMM YYYY')} Analytics
               </Text>
               <TouchableOpacity
                 onPress={() => setShowDatePicker(true)}
@@ -860,7 +827,7 @@ export default function Attendance() {
                     const month = selectedMonth ?? today.getMonth();
 
                     const date = new Date(year, month, 1); // 1st day of month
-                    handleMonthChange(null, date); // call only on Confirm
+                    handleMonthChange(); // call only on Confirm
                   }}
 
                 >

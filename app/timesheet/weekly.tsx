@@ -591,41 +591,77 @@ export default function WeeklyTimesheetScreen() {
                 key={currentWeekMonth.toISOString()}
                 current={currentWeekMonth.toISOString().split("T")[0]}
                 onMonthChange={(month) => setCurrentWeekMonth(new Date(month.dateString))}
+                hideArrows={true}
                 renderHeader={(date) => (
-                  <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-
-                    {/* Month Picker Toggle */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      paddingHorizontal: 10,
+                    }}
+                  >
+                    {/* Left Arrow for Previous Month */}
                     <TouchableOpacity
-                      onPress={() => setShowMonthPickerWeek((prev) => !prev)}
+                      onPress={() => {
+                        const prevMonth = new Date(currentWeekMonth);
+                        prevMonth.setMonth(prevMonth.getMonth() - 1);
+                        setCurrentWeekMonth(prevMonth);
+                      }}
+                      style={{ padding: 10 }}
                     >
-                      <Text style={{
-                        fontSize: 18,
-                        fontWeight: 'bold',
-                        color: isDark ? '#fff' : '#000',
-                        padding: 10,
-                        marginRight: 5,
-                      }}>
-                        {date.toString("MMMM")}
-                      </Text>
+                      <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}>‹</Text>
                     </TouchableOpacity>
 
-                    {/* Year Picker Toggle */}
+                    {/* Month and Year Display */}
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                      {/* Month Picker Toggle */}
+                      <TouchableOpacity
+                        onPress={() => setShowMonthPickerWeek((prev) => !prev)}
+                      >
+                        <Text style={{
+                          fontSize: 18,
+                          fontWeight: "bold",
+                          color: isDark ? "#fff" : "#000",
+                          padding: 10,
+                          marginRight: 5,
+                        }}>
+                          {date.toString("MMMM")}
+                        </Text>
+                      </TouchableOpacity>
+
+                      {/* Year Picker Toggle */}
+                      <TouchableOpacity
+                        onPress={() => setShowYearPickerWeek((prev) => !prev)}
+                      >
+                        <Text style={{
+                          fontSize: 18,
+                          fontWeight: "bold",
+                          color: isDark ? "#fff" : "#000",
+                          padding: 10,
+                          marginLeft: 5,
+                        }}>
+                          {date.toString("yyyy")}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Right Arrow for Next Month */}
                     <TouchableOpacity
-                      onPress={() => setShowYearPickerWeek((prev) => !prev)}
+                      onPress={() => {
+                        const nextMonth = new Date(currentWeekMonth);
+                        nextMonth.setMonth(nextMonth.getMonth() + 1);
+                        setCurrentWeekMonth(nextMonth);
+                      }}
+                      style={{ padding: 10 }}
                     >
-                      <Text style={{
-                        fontSize: 18,
-                        fontWeight: 'bold',
-                        color: isDark ? '#fff' : '#000',
-                        padding: 10,
-                        marginLeft: 5,
-                      }}>
-                        {date.toString("yyyy")}
-                      </Text>
+                      <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}>›</Text>
                     </TouchableOpacity>
                   </View>
                 )}
-                hideArrows={showMonthPickerWeek || showYearPickerWeek}
+
+
+                // hideArrows={showMonthPickerWeek || showYearPickerWeek}
                 hideDayNames={showMonthPickerWeek || showYearPickerWeek}
                 onDayPress={(day) => {
                   handleDatePicked(new Date(day.dateString));

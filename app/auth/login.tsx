@@ -82,6 +82,8 @@ export default function LoginScreen() {
       setIsLoading(false);
       buttonScale.value = withSpring(1);
       Alert.alert('Login Failed', error?.message ?? 'Something went wrong');
+        // router.replace('/(tabs)');
+
     }
   };
 

@@ -657,8 +657,9 @@ export default function Leave() {
             <View style={styles.headerRow}>
               <Text style={[styles.sectionTitle, isDark && styles.darkText]}>Recent Requests</Text>
               <TouchableOpacity
-                onPress={() => {setShowFilterModal(true),
-                  setFilters({
+                onPress={() => {
+                  setShowFilterModal(true),
+                    setFilters({
                       fromDate: `${currentYear}-01-01`,
                       toDate: `${currentYear}-12-31`,
                       statuses: [],
@@ -903,47 +904,79 @@ export default function Leave() {
                         current={currentMonth.toISOString().split("T")[0]}
                         onMonthChange={(month) => setCurrentMonth(new Date(month.dateString))}
                         renderHeader={(date) => (
-                          <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-                            {/* Month Picker Toggle */}
-                            <TouchableWithoutFeedback onPress={() => setShowMonthPicker((prev) => !prev)}>
-                              <Text
-                                style={{
-                                  fontSize: 18,
-                                  fontWeight: "bold",
-                                  color: isDark ? "#fff" : "#000",
-                                  padding: 10,
-                                  marginRight: 5,
-                                }}
-                              >
-                                {date.toString("MMMM")}
-                              </Text>
-                            </TouchableWithoutFeedback>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "space-between", // Changed to space-between
+                              alignItems: "center",
+                              paddingHorizontal: 10, // Add some padding
+                            }}
+                          >
+                            {/* Left Arrow for Previous Month */}
+                            <TouchableOpacity
+                              onPress={() => {
+                                const prevMonth = new Date(currentMonth);
+                                prevMonth.setMonth(prevMonth.getMonth() - 1);
+                                setCurrentMonth(prevMonth);
+                              }}
+                              style={{ padding: 10 }}
+                            >
+                              <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}>‹</Text>
+                            </TouchableOpacity>
 
-                            {/* Year Picker Toggle */}
-                            <TouchableWithoutFeedback onPress={() => setShowYearPicker((prev) => !prev)}>
-                              <Text
-                                style={{
-                                  fontSize: 18,
-                                  fontWeight: "bold",
-                                  color: isDark ? "#fff" : "#000",
-                                  padding: 10,
-                                  marginLeft: 5,
-                                }}
+                            {/* Month and Year Display (Non-clickable) */}
+                            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                              {/* Month Picker Toggle */}
+                              <TouchableOpacity
+                                onPress={() => setShowMonthPicker((prev) => !prev)}
                               >
-                                {date.getFullYear()}
-                              </Text>
-                            </TouchableWithoutFeedback>
+                                <Text
+                                  style={{
+                                    fontSize: 18,
+                                    fontWeight: "bold",
+                                    color: isDark ? "#fff" : "#000",
+                                    padding: 10,
+                                    marginRight: 5,
+                                  }}
+                                >
+                                  {date.toString("MMMM")}
+                                </Text>
+                              </TouchableOpacity>
+
+                              {/* Year Picker Toggle */}
+                              <TouchableOpacity
+                                onPress={() => setShowYearPicker((prev) => !prev)}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 18,
+                                    fontWeight: "bold",
+                                    color: isDark ? "#fff" : "#000",
+                                    padding: 10,
+                                    marginLeft: 5,
+                                  }}
+                                >
+                                  {date.toString("yyyy")}
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+
+                            {/* Right Arrow for Next Month */}
+                            <TouchableOpacity
+                              onPress={() => {
+                                const nextMonth = new Date(currentMonth);
+                                nextMonth.setMonth(nextMonth.getMonth() + 1);
+                                setCurrentMonth(nextMonth);
+                              }}
+                              style={{ padding: 10 }}
+                            >
+                              <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}>›</Text>
+                            </TouchableOpacity>
                           </View>
                         )}
-                        hideArrows={showMonthPicker || showYearPicker}
+                        hideArrows={true}
                         hideDayNames={showMonthPicker || showYearPicker}
-                        renderArrow={(direction) =>
-                          showMonthPicker || showYearPicker ? null : (
-                            <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}>
-                              {direction === "left" ? "‹" : "›"}
-                            </Text>
-                          )
-                        }
+
                         onDayPress={(day) => {
                           console.log('onDayPress triggered:', day.dateString);
                           setFilters((prev) => ({ ...prev, fromDate: day.dateString }));
@@ -1191,47 +1224,79 @@ export default function Leave() {
                         minDate={filters.fromDate || undefined}
                         onMonthChange={(month) => setCurrentMonth(new Date(month.dateString))}
                         renderHeader={(date) => (
-                          <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-                            {/* Month Picker Toggle */}
-                            <TouchableWithoutFeedback onPress={() => setShowMonthPicker((prev) => !prev)}>
-                              <Text
-                                style={{
-                                  fontSize: 18,
-                                  fontWeight: "bold",
-                                  color: isDark ? "#fff" : "#000",
-                                  padding: 10,
-                                  marginRight: 5,
-                                }}
-                              >
-                                {date.toString("MMMM")}
-                              </Text>
-                            </TouchableWithoutFeedback>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "space-between", // Changed to space-between
+                              alignItems: "center",
+                              paddingHorizontal: 10, // Add some padding
+                            }}
+                          >
+                            {/* Left Arrow for Previous Month */}
+                            <TouchableOpacity
+                              onPress={() => {
+                                const prevMonth = new Date(currentMonth);
+                                prevMonth.setMonth(prevMonth.getMonth() - 1);
+                                setCurrentMonth(prevMonth);
+                              }}
+                              style={{ padding: 10 }}
+                            >
+                              <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}>‹</Text>
+                            </TouchableOpacity>
 
-                            {/* Year Picker Toggle */}
-                            <TouchableWithoutFeedback onPress={() => setShowYearPicker((prev) => !prev)}>
-                              <Text
-                                style={{
-                                  fontSize: 18,
-                                  fontWeight: "bold",
-                                  color: isDark ? "#fff" : "#000",
-                                  padding: 10,
-                                  marginLeft: 5,
-                                }}
+                            {/* Month and Year Display (Non-clickable) */}
+                            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                              {/* Month Picker Toggle */}
+                              <TouchableOpacity
+                                onPress={() => setShowMonthPicker((prev) => !prev)}
                               >
-                                {date.getFullYear()}
-                              </Text>
-                            </TouchableWithoutFeedback>
+                                <Text
+                                  style={{
+                                    fontSize: 18,
+                                    fontWeight: "bold",
+                                    color: isDark ? "#fff" : "#000",
+                                    padding: 10,
+                                    marginRight: 5,
+                                  }}
+                                >
+                                  {date.toString("MMMM")}
+                                </Text>
+                              </TouchableOpacity>
+
+                              {/* Year Picker Toggle */}
+                              <TouchableOpacity
+                                onPress={() => setShowYearPicker((prev) => !prev)}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 18,
+                                    fontWeight: "bold",
+                                    color: isDark ? "#fff" : "#000",
+                                    padding: 10,
+                                    marginLeft: 5,
+                                  }}
+                                >
+                                  {date.toString("yyyy")}
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+
+                            {/* Right Arrow for Next Month */}
+                            <TouchableOpacity
+                              onPress={() => {
+                                const nextMonth = new Date(currentMonth);
+                                nextMonth.setMonth(nextMonth.getMonth() + 1);
+                                setCurrentMonth(nextMonth);
+                              }}
+                              style={{ padding: 10 }}
+                            >
+                              <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}>›</Text>
+                            </TouchableOpacity>
                           </View>
                         )}
-                        hideArrows={showMonthPicker || showYearPicker}
+                        hideArrows={true}
                         hideDayNames={showMonthPicker || showYearPicker}
-                        renderArrow={(direction) =>
-                          showMonthPicker || showYearPicker ? null : (
-                            <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}>
-                              {direction === "left" ? "‹" : "›"}
-                            </Text>
-                          )
-                        }
+                        
                         onDayPress={(day) => {
                           if (filters.fromDate && day.dateString < filters.fromDate) return;
                           setFilters((prev) => ({ ...prev, toDate: day.dateString }));
@@ -1684,56 +1749,76 @@ export default function Leave() {
                             <View
                               style={{
                                 flexDirection: "row",
-                                justifyContent: "center",
+                                justifyContent: "space-between", // Changed to space-between
                                 alignItems: "center",
+                                paddingHorizontal: 10, // Add some padding
                               }}
                             >
-                              {/* Month Picker Toggle */}
+                              {/* Left Arrow for Previous Month */}
                               <TouchableOpacity
-                                onPress={() => setShowMonthPicker((prev) => !prev)}
+                                onPress={() => {
+                                  const prevMonth = new Date(currentMonth);
+                                  prevMonth.setMonth(prevMonth.getMonth() - 1);
+                                  setCurrentMonth(prevMonth);
+                                }}
+                                style={{ padding: 10 }}
                               >
-                                <Text
-                                  style={{
-                                    fontSize: 18,
-                                    fontWeight: "bold",
-                                    color: isDark ? "#fff" : "#000",
-                                    padding: 10,
-                                    marginRight: 5,
-                                  }}
-                                >
-                                  {date.toString("MMMM")}
-                                </Text>
+                                <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}>‹</Text>
                               </TouchableOpacity>
 
-                              {/* Year Picker Toggle */}
-                              <TouchableOpacity
-                                onPress={() => setShowYearPicker((prev) => !prev)}
-                              >
-                                <Text
-                                  style={{
-                                    fontSize: 18,
-                                    fontWeight: "bold",
-                                    color: isDark ? "#fff" : "#000",
-                                    padding: 10,
-                                    marginLeft: 5,
-                                  }}
+                              {/* Month and Year Display (Non-clickable) */}
+                              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                {/* Month Picker Toggle */}
+                                <TouchableOpacity
+                                  onPress={() => setShowMonthPicker((prev) => !prev)}
                                 >
-                                  {date.toString("yyyy")}
-                                </Text>
+                                  <Text
+                                    style={{
+                                      fontSize: 18,
+                                      fontWeight: "bold",
+                                      color: isDark ? "#fff" : "#000",
+                                      padding: 10,
+                                      marginRight: 5,
+                                    }}
+                                  >
+                                    {date.toString("MMMM")}
+                                  </Text>
+                                </TouchableOpacity>
+
+                                {/* Year Picker Toggle */}
+                                <TouchableOpacity
+                                  onPress={() => setShowYearPicker((prev) => !prev)}
+                                >
+                                  <Text
+                                    style={{
+                                      fontSize: 18,
+                                      fontWeight: "bold",
+                                      color: isDark ? "#fff" : "#000",
+                                      padding: 10,
+                                      marginLeft: 5,
+                                    }}
+                                  >
+                                    {date.toString("yyyy")}
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
+
+                              {/* Right Arrow for Next Month */}
+                              <TouchableOpacity
+                                onPress={() => {
+                                  const nextMonth = new Date(currentMonth);
+                                  nextMonth.setMonth(nextMonth.getMonth() + 1);
+                                  setCurrentMonth(nextMonth);
+                                }}
+                                style={{ padding: 10 }}
+                              >
+                                <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}>›</Text>
                               </TouchableOpacity>
                             </View>
                           )}
-                          hideArrows={showMonthPicker || showYearPicker}
+                          hideArrows={true}
                           hideDayNames={showMonthPicker || showYearPicker}
-                          renderArrow={(direction) =>
-                            showMonthPicker || showYearPicker ? null : (
-                              <Text
-                                style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}
-                              >
-                                {direction === "left" ? "‹" : "›"}
-                              </Text>
-                            )
-                          }
+
                           onDayPress={(day) => {
                             if (!isWeekend(day.dateString)) {
                               setLeaveForm((prev) => {
@@ -2082,48 +2167,76 @@ export default function Leave() {
                               <View
                                 style={{
                                   flexDirection: "row",
-                                  justifyContent: "center",
+                                  justifyContent: "space-between", // Changed to space-between
                                   alignItems: "center",
+                                  paddingHorizontal: 10, // Add some padding
                                 }}
                               >
-                                <TouchableOpacity onPress={() => setShowMonthPicker((prev) => !prev)}>
-                                  <Text
-                                    style={{
-                                      fontSize: 18,
-                                      fontWeight: "bold",
-                                      color: isDark ? "#fff" : "#000",
-                                      padding: 10,
-                                      marginRight: 5,
-                                    }}
-                                  >
-                                    {date.toString("MMMM")}
-                                  </Text>
+                                {/* Left Arrow for Previous Month */}
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    const prevMonth = new Date(currentMonth);
+                                    prevMonth.setMonth(prevMonth.getMonth() - 1);
+                                    setCurrentMonth(prevMonth);
+                                  }}
+                                  style={{ padding: 10 }}
+                                >
+                                  <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}>‹</Text>
                                 </TouchableOpacity>
 
-                                <TouchableOpacity onPress={() => setShowYearPicker((prev) => !prev)}>
-                                  <Text
-                                    style={{
-                                      fontSize: 18,
-                                      fontWeight: "bold",
-                                      color: isDark ? "#fff" : "#000",
-                                      padding: 10,
-                                      marginLeft: 5,
-                                    }}
+                                {/* Month and Year Display (Non-clickable) */}
+                                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                  {/* Month Picker Toggle */}
+                                  <TouchableOpacity
+                                    onPress={() => setShowMonthPicker((prev) => !prev)}
                                   >
-                                    {date.toString("yyyy")}
-                                  </Text>
+                                    <Text
+                                      style={{
+                                        fontSize: 18,
+                                        fontWeight: "bold",
+                                        color: isDark ? "#fff" : "#000",
+                                        padding: 10,
+                                        marginRight: 5,
+                                      }}
+                                    >
+                                      {date.toString("MMMM")}
+                                    </Text>
+                                  </TouchableOpacity>
+
+                                  {/* Year Picker Toggle */}
+                                  <TouchableOpacity
+                                    onPress={() => setShowYearPicker((prev) => !prev)}
+                                  >
+                                    <Text
+                                      style={{
+                                        fontSize: 18,
+                                        fontWeight: "bold",
+                                        color: isDark ? "#fff" : "#000",
+                                        padding: 10,
+                                        marginLeft: 5,
+                                      }}
+                                    >
+                                      {date.toString("yyyy")}
+                                    </Text>
+                                  </TouchableOpacity>
+                                </View>
+
+                                {/* Right Arrow for Next Month */}
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    const nextMonth = new Date(currentMonth);
+                                    nextMonth.setMonth(nextMonth.getMonth() + 1);
+                                    setCurrentMonth(nextMonth);
+                                  }}
+                                  style={{ padding: 10 }}
+                                >
+                                  <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 20 }}>›</Text>
                                 </TouchableOpacity>
                               </View>
                             )}
-                            hideArrows={showMonthPicker || showYearPicker}
+                            hideArrows={true}
                             hideDayNames={showMonthPicker || showYearPicker}
-                            renderArrow={(direction) =>
-                              showMonthPicker || showYearPicker ? null : (
-                                <Text style={{ color: isDark ? "#9CA3AF" : "#000", fontSize: 18 }}>
-                                  {direction === "left" ? "‹" : "›"}
-                                </Text>
-                              )
-                            }
+
                             onDayPress={(day) => {
                               if (!isWeekend(day.dateString)) {
                                 const selectedEndDate = new Date(day.dateString);
@@ -3321,34 +3434,37 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   modalActions: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginTop: 20,
-  paddingHorizontal: 20,
-  paddingVertical: 15,  // increases height
-  borderTopWidth: 1,
-  borderColor: "#ddd",
-},
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 20,
+    // paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderColor: "#ddd",
+  },
 
   modalButton: {
-    flex: 1,
-    backgroundColor: '#ed3a3a',
-    paddingVertical: 10,
-    // paddingHorizontal: 15,
-    marginRight: 10,
-    borderRadius: 8,
-    alignItems: 'center',
+    // flex: 1,
+    padding: 10,
+    width: 150,
+    backgroundColor: "#ed3a3a",
+    paddingVertical: 14,
+    // marginHorizontal: 1,  
+    borderRadius: 10,
+    alignItems: "center",
   },
-  cancelButton: {
-    backgroundColor: '#EF4444',
-  },
-  modalButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
 
+  cancelButton: {
+    backgroundColor: "#EF4444",
   },
+
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 18,   // ⬅️ slightly bigger text
+    fontWeight: "600",
+  },
+
   datePicker: {
     borderWidth: 1,
     borderColor: '#ccc',

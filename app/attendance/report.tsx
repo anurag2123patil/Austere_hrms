@@ -349,7 +349,7 @@ export default function AttendanceReportScreen() {
     switch (status) {
       case 'present': return '#10B981';
       case 'late': return '#F59E0B';
-      case 'absent': return '#EF4444';
+      case 'absent': return '#ed3a3a';
       case 'half-day': return '#8B5CF6';
       default: return '#6B7280';
     }
@@ -483,7 +483,7 @@ export default function AttendanceReportScreen() {
       {/* Header */}
       <Animated.View entering={FadeInDown.delay(100)} style={styles.header}>
         <LinearGradient
-          colors={isDark ? ['#1F2937', '#374151'] : ['#f64137', '#f24637']}
+          colors={isDark ? ['#1F2937', '#374151'] : ['#f64137', '#ed3a3a']}
           style={styles.headerGradient}
         >
           <View style={styles.headerContent}>
@@ -510,7 +510,7 @@ export default function AttendanceReportScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statsScroll}>
           {renderStatsCard(BarChart3, stats.totalDays, 'Total Days', '#3B82F6')}
           {renderStatsCard(CheckCircle, `${stats.attendanceRate}%`, 'Attendance', '#10B981')}
-          {renderStatsCard(Clock, `${stats.totalHours}h`, 'Total Hours', '#f24637')}
+          {renderStatsCard(Clock, `${stats.totalHours}h`, 'Total Hours', '#ed3a3a')}
           {renderStatsCard(Target, `${stats.avgDaily}h`, 'Avg Daily', '#8B5CF6')}
         </ScrollView>
       </Animated.View>
@@ -903,7 +903,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 10,
-    backgroundColor: '#EF4444', // Red color
+    backgroundColor: '#ed3a3a', // Red color
     zIndex: 1,
   },
   darkFilterButton: {
@@ -1054,7 +1054,7 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     fontSize: 16,
-    color: '#f24637',
+    color: '#ed3a3a',
     fontWeight: '500',
   },
   modalContent: {
@@ -1089,8 +1089,8 @@ const styles = StyleSheet.create({
     borderColor: '#4B5563',
   },
   activeFilterOption: {
-    backgroundColor: '#f24637',
-    borderColor: '#f24637',
+    backgroundColor: '#ed3a3a',
+    borderColor: '#ed3a3a',
   },
   filterOptionText: {
     fontSize: 14,
@@ -1201,7 +1201,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     right: 20,
-    backgroundColor: '#f24637',
+    backgroundColor: '#ed3a3a',
     padding: 12,
     borderRadius: 30,
     elevation: 5,
@@ -1246,7 +1246,7 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     flex: 1,
-    backgroundColor: '#f24637',
+    backgroundColor: '#ed3a3a',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
