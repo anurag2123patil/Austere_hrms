@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useAlert } from '@/hooks/useAlert';
 import {
   View,
   Text,
@@ -30,6 +31,7 @@ export default function Profile() {
   const dispatch = useDispatch();
   const { user, theme } = useSelector((state: RootState) => state.auth);
   const { stats } = useSelector((state: RootState) => state.attendance);
+  const { showAlert, AlertComponent } = useAlert();
 
   const isDark = theme === 'dark';
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -53,11 +55,12 @@ export default function Profile() {
   };
 
   const handleLogout = () => {
-    Alert.alert(
+    showAlert(
       'Logout',
       'Are you sure you want to logout?',
+      'warning', 
       [
-        { text: 'Cancel', style: 'cancel' },
+        
         {
           text: 'Logout',
           style: 'destructive',
@@ -142,13 +145,7 @@ export default function Profile() {
         { icon: isDark ? Sun : Moon, label: 'Theme', toggle: true, value: isDark, onToggle: handleThemeToggle },
       ]
     },
-    // {
-    //   title: 'Support',
-    //   items: [
-    //     { icon: Shield, label: 'Privacy & Security', action: () => Alert.alert('Privacy', 'Privacy settings coming soon!') },
-    //     { icon: HelpCircle, label: 'Help & Support', action: () => Alert.alert('Help', 'Help center coming soon!') },
-    //   ]
-    // },
+  
     {
       title: 'Account Actions',
       items: [
@@ -353,6 +350,8 @@ export default function Profile() {
           © {currentYear} Austere Systems Limited
         </Text>
       </Animated.View>
+      <AlertComponent />
+
     </ScrollView>
   );
 }

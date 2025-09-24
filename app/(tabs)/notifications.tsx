@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAlert } from '@/hooks/useAlert';
 import {
   View,
   Text,
@@ -19,6 +20,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 export default function Notifications() {
+  const { showAlert, AlertComponent } = useAlert();
+
   const dispatch = useDispatch();
   const { theme } = useSelector((state: RootState) => state.auth);
   const { notifications, unreadCount } = useSelector((state: RootState) => state.notification);
@@ -73,7 +76,7 @@ export default function Notifications() {
 
   const handleMarkAllAsRead = () => {
     dispatch(markAllAsRead());
-    Alert.alert('Success', 'All notifications marked as read');
+    showAlert('Success', 'All notifications marked as read','success');
   };
 
   const handleRemoveNotification = (id: string) => {
@@ -286,6 +289,7 @@ export default function Notifications() {
           </View>
         </Animated.View>
       </ScrollView>
+      <AlertComponent/>
     </View>
   );
 }

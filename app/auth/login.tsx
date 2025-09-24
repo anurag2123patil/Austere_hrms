@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useAlert } from '@/hooks/useAlert';
 import {
   View,
   Text,
@@ -36,6 +37,8 @@ import Animated, {
 import { loginUser } from '@/api/Api';
 import BackgroundCurves from '@/components/BackgroundCurves';
 export default function LoginScreen() {
+  const { showAlert, AlertComponent } = useAlert();
+
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,7 +48,7 @@ export default function LoginScreen() {
   const buttonScale = useSharedValue(1);
   const pathname = usePathname();
 
-  
+
   useEffect(() => {
     const backAction = () => {
       if (pathname === '/auth/login') {
@@ -60,7 +63,7 @@ export default function LoginScreen() {
   }, [pathname]);
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Missing Information', 'Please fill in all fields');
+      showAlert('Missing Information', 'Please fill in all fields','info');
       return;
     }
 
@@ -76,13 +79,13 @@ export default function LoginScreen() {
         router.replace('/(tabs)');
       } else {
         setIsLoading(false);
-        Alert.alert('Login Failed', data?.message ?? 'Login failed, try again.');
+        showAlert('Login Failed', data?.message ?? 'Login failed, try again.','error');
       }
     } catch (error: any) {
       setIsLoading(false);
       buttonScale.value = withSpring(1);
-      Alert.alert('Login Failed', error?.message ?? 'Something went wrong');
-        // router.replace('/(tabs)');
+      showAlert('Login Failed', error?.message ?? 'Something went wrong','error');
+      // router.replace('/(tabs)');
 
     }
   };
@@ -115,7 +118,7 @@ export default function LoginScreen() {
                 <Image
                   source={require('@/assets/images/Austerelogo.png')}
                   style={styles.logoImage}
-                  resizeMode="contain" 
+                  resizeMode="contain"
                 />
               </View>
               <View style={styles.companyheader}>
@@ -144,7 +147,7 @@ export default function LoginScreen() {
                       onChangeText={setEmail}
                       keyboardType="email-address"
                       autoCapitalize="none"
-                      autoCorrect={false} 
+                      autoCorrect={false}
                     />
                   </View>
                 </View>
@@ -161,7 +164,7 @@ export default function LoginScreen() {
                       onChangeText={setPassword}
                       secureTextEntry={!showPassword}
                       autoCapitalize="none"
-                      autoCorrect={false} 
+                      autoCorrect={false}
                     />
                     <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                       {showPassword ? (
@@ -212,15 +215,16 @@ export default function LoginScreen() {
             </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
+      <AlertComponent/>
       </View>
     </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    position: 'relative', 
+  container: {
+    flex: 1,
+    position: 'relative',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -270,8 +274,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     opacity: 0.9,
   },
-  formContainer: { 
-    paddingHorizontal: 20, 
+  formContainer: {
+    paddingHorizontal: 20,
     justifyContent: 'center',
     paddingBottom: 30, // Add some bottom padding
   },
@@ -298,8 +302,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 30,
   },
-  inputContainer: { 
-    marginBottom: 15 
+  inputContainer: {
+    marginBottom: 15
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -312,20 +316,20 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     gap: 10,
   },
-  input: { 
-    flex: 1, 
-    fontSize: 16, 
+  input: {
+    flex: 1,
+    fontSize: 16,
     color: '#111827',
     paddingVertical: 12, // Add vertical padding for better touch area
   },
-  forgotPassword: { 
-    alignSelf: 'flex-end', 
-    marginBottom: 30 
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginBottom: 30
   },
-  forgotPasswordText: { 
-    fontSize: 14, 
-    color: '#f24637', 
-    fontWeight: '500' 
+  forgotPasswordText: {
+    fontSize: 14,
+    color: '#f24637',
+    fontWeight: '500'
   },
   loginButton: {
     borderRadius: 12,
@@ -336,8 +340,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  loginButtonDisabled: { 
-    opacity: 0.7 
+  loginButtonDisabled: {
+    opacity: 0.7
   },
   loginGradient: {
     flexDirection: 'row',
@@ -351,23 +355,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  footer: { 
-    alignItems: 'center', 
+  footer: {
+    alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 30,
-    minHeight: 10, 
-   
+    minHeight: 10,
+
   },
-  footerText: { 
-    fontSize: 12, 
-    color: '#E74C3C', 
-    opacity: 0.8 
+  footerText: {
+    fontSize: 12,
+    color: '#E74C3C',
+    opacity: 0.8
   },
-  footerSubtext: { 
-    fontSize: 10, 
-    color: '#020552', 
-    opacity: 0.6, 
-    marginTop: 4 
+  footerSubtext: {
+    fontSize: 10,
+    color: '#020552',
+    opacity: 0.6,
+    marginTop: 4
   },
   logoImage: {
     width: 80,

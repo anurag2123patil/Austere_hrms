@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useAlert } from '@/hooks/useAlert';
 import {
   View,
   Text,
@@ -52,6 +53,8 @@ interface TransformedAttendanceRecord {
 
 
 export default function AttendanceReportScreen() {
+  const { showAlert, AlertComponent } = useAlert();
+
   const { theme } = useSelector((state: RootState) => state.auth);
   const isDark = theme === 'dark';
 
@@ -245,10 +248,11 @@ export default function AttendanceReportScreen() {
         console.error("Error in report loadData:", err);
 
         // Show user-friendly error message
-        Alert.alert(
+        showAlert(
           'Error',
           'Failed to load attendance report. Please try again.',
-          [{ text: 'OK' }]
+          'error',
+          [{ text: 'OK', onPress: () => { } }]
         );
 
         if (resetData || !isNextPage) {
@@ -420,7 +424,12 @@ export default function AttendanceReportScreen() {
             <Text style={[styles.recordHours, isDark && styles.darkText]}>
               {item.totalHours}h
             </Text>
-            <TouchableOpacity style={styles.moreButton}>
+            showAlert(
+            'Error',
+            'Failed to load attendance records. Please try again.',
+            'error',
+            [{text: 'OK', onPress: () => { } }]
+            );  <TouchableOpacity style={styles.moreButton}>
               <MoreVertical size={16} color={isDark ? '#9CA3AF' : '#6B7280'} />
             </TouchableOpacity>
           </View>
@@ -699,7 +708,7 @@ export default function AttendanceReportScreen() {
               <Text style={[styles.filterTitle, isDark && styles.darkText]}>Sort By</Text>
               <View style={styles.filterOptions}>
                 {['date', 'status'].map((sort) => (
-                // {['date', 'hours', 'status'].map((sort) => (
+                  // {['date', 'hours', 'status'].map((sort) => (
                   <TouchableOpacity
                     key={sort}
                     style={[
@@ -743,7 +752,7 @@ export default function AttendanceReportScreen() {
           </View>
         </View>
       </Modal>
-
+      <AlertComponent />
     </View>
   );
 }

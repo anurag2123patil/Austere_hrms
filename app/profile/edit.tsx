@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+
+import { useAlert } from '@/hooks/useAlert';
 import {
   View,
   Text,
@@ -53,7 +55,7 @@ export default function EditProfileScreen() {
   const dispatch = useDispatch();
   const { user, theme } = useSelector((state: RootState) => state.auth);
   const isDark = theme === 'dark';
-
+  const { showAlert, AlertComponent } = useAlert();
   const [formData, setFormData] = useState({
     firstName: '',
     middleName: '',
@@ -114,7 +116,7 @@ export default function EditProfileScreen() {
         setIsPictureRemoved(false);
       } catch (error) {
         console.error('Failed to load employee info:', error);
-        Alert.alert('Error', 'Unable to fetch profile data.');
+        showAlert('Error', 'Unable to fetch profile data.');
       } finally {
         setIsProfileLoading(false);
       }
@@ -202,50 +204,55 @@ export default function EditProfileScreen() {
     // Continue saving
     setIsLoading(true);
     buttonScale.value = withSpring(0.95);
+  const { showAlert, AlertComponent } = useAlert();
 
     try {
-      // Create the payload with the isPictureRemoved flag
+
       const payload = {
         ...formData,
         isPictureRemoved: isPictureRemoved,
       };
-      
+
       await updateEmployeeBasicInfo(payload);
       buttonScale.value = withSpring(1);
       setIsLoading(false);
-      Alert.alert('Success', 'Profile updated successfully!', [
-        { text: 'OK', onPress: () => router.back() }
+      showAlert('Success', 'Profile updated successfully!', 'success', [
+        {
+          text: 'OK',
+          onPress: () => router.back(),
+          style: 'default'
+        }
       ]);
     } catch (error) {
       setIsLoading(false);
-      Alert.alert('Error', error?.message || 'Failed to update profile');
+      showAlert('Error', error?.message || 'Failed to update profile', 'error');
     }
   };
 
   const pickImage = async () => {
-    Alert.alert(
+    showAlert(
       'Select Image Source',
       'Choose the source for your profile photo.',
+      'info',
       [
         { text: 'Camera', onPress: openCamera },
         { text: 'Gallery', onPress: openGallery },
         {
-          text: 'Remove Photo',
+          text: 'Remove',
           onPress: () => {
-            // Set the remove flag to true
+            
             setIsPictureRemoved(true);
-            // Clear the current images
+            
             setCurrentProfileImage(null);
             setFormData(prev => ({
               ...prev,
-              profile: '', 
+              profile: '',
             }));
           },
           style: 'destructive',
         },
-        { text: 'Cancel', style: 'cancel' },
-      ],
-      { cancelable: true }
+        // { text: 'Cancel', onPress: () => { }, style: 'cancel' },
+      ]
     );
   };
 
@@ -253,7 +260,7 @@ export default function EditProfileScreen() {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
     if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Camera access is required to take a photo.');
+      showAlert('Permission Denied', 'Camera access is required to take a photo.'); 
       return;
     }
 
@@ -270,7 +277,7 @@ export default function EditProfileScreen() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Media library access is required to select a photo.');
+      showAlert('Permission Denied', 'Media library access is required to select a photo.');
       return;
     }
 
@@ -477,7 +484,7 @@ export default function EditProfileScreen() {
 
                   {/* Keep the existing View Profile Button as alternative option */}
                   {hasProfileImage() && (
-                        <Text style={[styles.photoText, isDark && styles.darkText]}>Tap to View photo</Text>
+                    <Text style={[styles.photoText, isDark && styles.darkText]}>Tap to View photo</Text>
 
                   )}
                 </View>
@@ -488,222 +495,222 @@ export default function EditProfileScreen() {
                 <View style={[styles.formCard, isDark && styles.darkCard]}>
                   <Text style={[styles.sectionTitle, isDark && styles.darkText]}>Personal Information</Text>
 
-              {/* Name */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>First Name</Text>
-                {errors.firstName !== '' && (
-                  <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.firstName}</Text>
-                )}
-                <View style={[styles.inputWrapper, isDark && styles.darkInputWrapper]}>
-                  <User size={20} color="#f24637" />
-                  <TextInput
-                    style={[styles.input, isDark && styles.darkText]}
-                    value={formData.firstName}
-                    onChangeText={(text) => {
-                      setFormData({ ...formData, firstName: text });
-                      setErrors((prev) => ({ ...prev, firstName: '' }));
-                    }}
-                    placeholder="Enter your first name"
-                    placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
-                    returnKeyType="next"
-                  />
-                </View>
-              </View>
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>Middle Name</Text>
-                {errors.middleName !== '' && (
-                  <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.middleName}</Text>
-                )}
-                <View style={[styles.inputWrapper, isDark && styles.darkInputWrapper]}>
-                  <User size={20} color="#f24637" />
-                  <TextInput
-                    style={[styles.input, isDark && styles.darkText]}
-                    value={formData.middleName}
-                    onChangeText={(text) => {
-                      setFormData({ ...formData, middleName: text });
-                      setErrors((prev) => ({ ...prev, middleName: '' }));
-                    }} placeholder="Enter your middle name"
-                    placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
-                    returnKeyType="next"
-                  />
-                </View>
-              </View>
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>Last Name</Text>
-                {errors.lastName !== '' && (
-                  <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.lastName}</Text>
-                )}
-                <View style={[styles.inputWrapper, isDark && styles.darkInputWrapper]}>
-                  <User size={20} color="#f24637" />
-                  <TextInput
-                    style={[styles.input, isDark && styles.darkText]}
-                    value={formData.lastName}
-                    onChangeText={(text) => {
-                      setFormData({ ...formData, lastName: text });
-                      setErrors((prev) => ({ ...prev, lastName: '' }));
-                    }}
-                    placeholder="Enter your last name"
-                    placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
-                    returnKeyType="next"
-                  />
-                </View>
-              </View>
-
-              {/* Email */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>Email Address</Text>
-                {errors.email !== '' && (
-                  <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.email}</Text>
-                )}
-                <View style={[styles.inputWrapper, isDark && styles.darkInputWrapper]}>
-                  <Mail size={20} color="#f24637" />
-                  <TextInput
-                    style={[styles.input, isDark && styles.darkText]}
-                    value={formData.email}
-                    onChangeText={(text) => {
-                      setFormData({ ...formData, email: text });
-                      setErrors((prev) => ({ ...prev, email: '' }));
-                    }}
-                    placeholder="Enter your email"
-                    placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    returnKeyType="next"
-                  />
-                </View>
-              </View>
-
-              {/* Phone */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>Phone Number</Text>
-                {errors.phone !== '' && (
-                  <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.phone}</Text>
-                )}
-                <View style={[styles.inputWrapper, isDark && styles.darkInputWrapper]}>
-                  <Phone size={20} color="#f24637" />
-                  <TextInput
-                    style={[styles.input, isDark && styles.darkText]}
-                    value={formData.phone}
-                    onChangeText={(text) => {
-                      setFormData({ ...formData, phone: text });
-                      setErrors((prev) => ({ ...prev, phone: '' }));
-                    }}
-                    placeholder="Enter your phone number"
-                    placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
-                    keyboardType="numeric"
-                    returnKeyType="next"
-                  />
-                </View>
-              </View>
-              {/* Location */}
-              {Platform.OS === 'android' ? (
-                <View style={{ zIndex: 1000 }}>
-                  <View style={{ marginBottom: locationOpen ? 200 : 20 }}>
-                    <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>Location</Text>
-                    {errors.location !== '' && (
-                      <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.location}</Text>
+                  {/* Name */}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>First Name</Text>
+                    {errors.firstName !== '' && (
+                      <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.firstName}</Text>
                     )}
-                    <DropDownPicker
-                      open={locationOpen}
-                      value={selectedLocation}
-                      items={locationItems}
-                      setOpen={setLocationOpen}
-                      setValue={setSelectedLocation}
-                      setItems={setLocationItems}
-                      placeholder="Select location"
-                      listMode="SCROLLVIEW"
-                      scrollViewProps={{
-                        nestedScrollEnabled: true,
-                      }}
-                      style={{
-                        borderRadius: 12,
-                        borderWidth: 1,
-                        paddingHorizontal: 16,
-                        paddingVertical: 12,
-                        borderColor: '#E5E7EB',
-                        backgroundColor: isDark ? '#374151' : '#F9FAFB',
-                        zIndex: 1000,
-                      }}
-                      dropDownContainerStyle={{
-                        borderRadius: 12,
-                        borderColor: '#E5E7EB',
-                        backgroundColor: isDark ? '#374151' : '#FFFFFF',
-                        maxHeight: 150,
-                        zIndex: 1000,
-                      }}
-                      textStyle={{
-                        fontSize: 16,
-                        color: isDark ? '#FFFFFF' : '#111827',
-                      }}
-                      labelStyle={{
-                        color: isDark ? '#FFFFFF' : '#111827',
-                      }}
-                      placeholderStyle={{
-                        color: isDark ? '#9CA3AF' : '#9CA3AF',
-                      }}
-                      onChangeValue={(val) => {
-                        setSelectedLocation(val);
-                        setFormData((prev) => ({ ...prev, location: val }));
-                        setErrors((prev) => ({ ...prev, location: '' }));
-                      }}
-                    />
+                    <View style={[styles.inputWrapper, isDark && styles.darkInputWrapper]}>
+                      <User size={20} color="#f24637" />
+                      <TextInput
+                        style={[styles.input, isDark && styles.darkText]}
+                        value={formData.firstName}
+                        onChangeText={(text) => {
+                          setFormData({ ...formData, firstName: text });
+                          setErrors((prev) => ({ ...prev, firstName: '' }));
+                        }}
+                        placeholder="Enter your first name"
+                        placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+                        returnKeyType="next"
+                      />
+                    </View>
                   </View>
-                </View>
-              ) : (
-                <View style={{ marginBottom: locationOpen ? 200 : 20 }}>
-                  <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>Location</Text>
-                  {errors.location !== '' && (
-                    <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.location}</Text>
-                  )}
-                  <DropDownPicker
-                    open={locationOpen}
-                    value={selectedLocation}
-                    items={locationItems}
-                    setOpen={setLocationOpen}
-                    setValue={setSelectedLocation}
-                    setItems={setLocationItems}
-                    placeholder="Select location"
-                    listMode="SCROLLVIEW"
-                    scrollViewProps={{
-                      nestedScrollEnabled: true,
-                    }}
-                    style={{
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      paddingHorizontal: 16,
-                      paddingVertical: 12,
-                      borderColor: '#E5E7EB',
-                      backgroundColor: isDark ? '#374151' : '#F9FAFB',
-                      zIndex: 1000,
-                    }}
-                    dropDownContainerStyle={{
-                      borderRadius: 12,
-                      borderColor: '#E5E7EB',
-                      backgroundColor: isDark ? '#374151' : '#FFFFFF',
-                      maxHeight: 150,
-                      zIndex: 1000,
-                    }}
-                    textStyle={{
-                      fontSize: 16,
-                      color: isDark ? '#FFFFFF' : '#111827',
-                    }}
-                    labelStyle={{
-                      color: isDark ? '#FFFFFF' : '#111827',
-                    }}
-                    placeholderStyle={{
-                      color: isDark ? '#9CA3AF' : '#9CA3AF',
-                    }}
-                    onChangeValue={(val) => {
-                      setSelectedLocation(val);
-                      setFormData((prev) => ({ ...prev, location: val }));
-                      setErrors((prev) => ({ ...prev, location: '' }));
-                    }}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>Middle Name</Text>
+                    {errors.middleName !== '' && (
+                      <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.middleName}</Text>
+                    )}
+                    <View style={[styles.inputWrapper, isDark && styles.darkInputWrapper]}>
+                      <User size={20} color="#f24637" />
+                      <TextInput
+                        style={[styles.input, isDark && styles.darkText]}
+                        value={formData.middleName}
+                        onChangeText={(text) => {
+                          setFormData({ ...formData, middleName: text });
+                          setErrors((prev) => ({ ...prev, middleName: '' }));
+                        }} placeholder="Enter your middle name"
+                        placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+                        returnKeyType="next"
+                      />
+                    </View>
+                  </View>
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>Last Name</Text>
+                    {errors.lastName !== '' && (
+                      <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.lastName}</Text>
+                    )}
+                    <View style={[styles.inputWrapper, isDark && styles.darkInputWrapper]}>
+                      <User size={20} color="#f24637" />
+                      <TextInput
+                        style={[styles.input, isDark && styles.darkText]}
+                        value={formData.lastName}
+                        onChangeText={(text) => {
+                          setFormData({ ...formData, lastName: text });
+                          setErrors((prev) => ({ ...prev, lastName: '' }));
+                        }}
+                        placeholder="Enter your last name"
+                        placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+                        returnKeyType="next"
+                      />
+                    </View>
+                  </View>
 
-                  />
+                  {/* Email */}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>Email Address</Text>
+                    {errors.email !== '' && (
+                      <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.email}</Text>
+                    )}
+                    <View style={[styles.inputWrapper, isDark && styles.darkInputWrapper]}>
+                      <Mail size={20} color="#f24637" />
+                      <TextInput
+                        style={[styles.input, isDark && styles.darkText]}
+                        value={formData.email}
+                        onChangeText={(text) => {
+                          setFormData({ ...formData, email: text });
+                          setErrors((prev) => ({ ...prev, email: '' }));
+                        }}
+                        placeholder="Enter your email"
+                        placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        returnKeyType="next"
+                      />
+                    </View>
+                  </View>
+
+                  {/* Phone */}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>Phone Number</Text>
+                    {errors.phone !== '' && (
+                      <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.phone}</Text>
+                    )}
+                    <View style={[styles.inputWrapper, isDark && styles.darkInputWrapper]}>
+                      <Phone size={20} color="#f24637" />
+                      <TextInput
+                        style={[styles.input, isDark && styles.darkText]}
+                        value={formData.phone}
+                        onChangeText={(text) => {
+                          setFormData({ ...formData, phone: text });
+                          setErrors((prev) => ({ ...prev, phone: '' }));
+                        }}
+                        placeholder="Enter your phone number"
+                        placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+                        keyboardType="numeric"
+                        returnKeyType="next"
+                      />
+                    </View>
+                  </View>
+                  {/* Location */}
+                  {Platform.OS === 'android' ? (
+                    <View style={{ zIndex: 1000 }}>
+                      <View style={{ marginBottom: locationOpen ? 200 : 20 }}>
+                        <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>Location</Text>
+                        {errors.location !== '' && (
+                          <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.location}</Text>
+                        )}
+                        <DropDownPicker
+                          open={locationOpen}
+                          value={selectedLocation}
+                          items={locationItems}
+                          setOpen={setLocationOpen}
+                          setValue={setSelectedLocation}
+                          setItems={setLocationItems}
+                          placeholder="Select location"
+                          listMode="SCROLLVIEW"
+                          scrollViewProps={{
+                            nestedScrollEnabled: true,
+                          }}
+                          style={{
+                            borderRadius: 12,
+                            borderWidth: 1,
+                            paddingHorizontal: 16,
+                            paddingVertical: 12,
+                            borderColor: '#E5E7EB',
+                            backgroundColor: isDark ? '#374151' : '#F9FAFB',
+                            zIndex: 1000,
+                          }}
+                          dropDownContainerStyle={{
+                            borderRadius: 12,
+                            borderColor: '#E5E7EB',
+                            backgroundColor: isDark ? '#374151' : '#FFFFFF',
+                            maxHeight: 150,
+                            zIndex: 1000,
+                          }}
+                          textStyle={{
+                            fontSize: 16,
+                            color: isDark ? '#FFFFFF' : '#111827',
+                          }}
+                          labelStyle={{
+                            color: isDark ? '#FFFFFF' : '#111827',
+                          }}
+                          placeholderStyle={{
+                            color: isDark ? '#9CA3AF' : '#9CA3AF',
+                          }}
+                          onChangeValue={(val) => {
+                            setSelectedLocation(val);
+                            setFormData((prev) => ({ ...prev, location: val }));
+                            setErrors((prev) => ({ ...prev, location: '' }));
+                          }}
+                        />
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={{ marginBottom: locationOpen ? 200 : 20 }}>
+                      <Text style={[styles.inputLabel, isDark && styles.darkSubText]}>Location</Text>
+                      {errors.location !== '' && (
+                        <Text style={{ color: 'red', marginTop: 4, fontSize: 12 }}>{errors.location}</Text>
+                      )}
+                      <DropDownPicker
+                        open={locationOpen}
+                        value={selectedLocation}
+                        items={locationItems}
+                        setOpen={setLocationOpen}
+                        setValue={setSelectedLocation}
+                        setItems={setLocationItems}
+                        placeholder="Select location"
+                        listMode="SCROLLVIEW"
+                        scrollViewProps={{
+                          nestedScrollEnabled: true,
+                        }}
+                        style={{
+                          borderRadius: 12,
+                          borderWidth: 1,
+                          paddingHorizontal: 16,
+                          paddingVertical: 12,
+                          borderColor: '#E5E7EB',
+                          backgroundColor: isDark ? '#374151' : '#F9FAFB',
+                          zIndex: 1000,
+                        }}
+                        dropDownContainerStyle={{
+                          borderRadius: 12,
+                          borderColor: '#E5E7EB',
+                          backgroundColor: isDark ? '#374151' : '#FFFFFF',
+                          maxHeight: 150,
+                          zIndex: 1000,
+                        }}
+                        textStyle={{
+                          fontSize: 16,
+                          color: isDark ? '#FFFFFF' : '#111827',
+                        }}
+                        labelStyle={{
+                          color: isDark ? '#FFFFFF' : '#111827',
+                        }}
+                        placeholderStyle={{
+                          color: isDark ? '#9CA3AF' : '#9CA3AF',
+                        }}
+                        onChangeValue={(val) => {
+                          setSelectedLocation(val);
+                          setFormData((prev) => ({ ...prev, location: val }));
+                          setErrors((prev) => ({ ...prev, location: '' }));
+                        }}
+
+                      />
+                    </View>
+                  )}
                 </View>
-              )}
-            </View>
-          </Animated.View>
+              </Animated.View>
 
               {/* Save Button */}
               <Animated.View entering={FadeInRight.delay(500)} style={styles.saveSection}>
@@ -766,11 +773,12 @@ export default function EditProfileScreen() {
                 </TouchableOpacity>
               )}
 
-              
+
             </View>
           </TouchableOpacity>
         </View>
       </Modal>
+      <AlertComponent />
     </KeyboardAvoidingView>
   );
 }
@@ -1050,7 +1058,7 @@ const styles = StyleSheet.create({
     width: 350,
     height: 350,
     borderRadius: 10,
-    
+
   },
   modalTitle: {
     color: '#FFFFFF',
@@ -1059,5 +1067,5 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textAlign: 'center',
   },
-  
+
 });

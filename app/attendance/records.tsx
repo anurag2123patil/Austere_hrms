@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useAlert } from '@/hooks/useAlert';
 import {
   View,
   Text,
@@ -37,6 +38,8 @@ interface TransformedAttendanceRecord {
 
 
 export default function AttendanceRecordsScreen() {
+  const { showAlert, AlertComponent } = useAlert();
+
   const { theme } = useSelector((state: RootState) => state.auth);
   const isDark = theme === 'dark';
   const [filteredRecords, setFilteredRecords] = useState<TransformedAttendanceRecord[]>([]);
@@ -90,7 +93,7 @@ export default function AttendanceRecordsScreen() {
         durationDisplay = `${hours}:${minutes.toString().padStart(2, '0')}`;
       }
     }
-  
+
 
     let status: 'present' | 'late' | 'half-day' | 'absent' = 'absent';
 
@@ -110,7 +113,7 @@ export default function AttendanceRecordsScreen() {
       checkIn: punchIn ? `${punchInTime} ${punchInMeridiem}` : null,
       checkOut: punchOut ? `${punchOutTime} ${punchOutMeridiem}` : null,
       checkOutDate: punchOutDate,
-      totalHours: durationDisplay, 
+      totalHours: durationDisplay,
       status,
       location: record.location || 'N/A',
       notes: record.punchInNote || undefined,
@@ -185,10 +188,11 @@ export default function AttendanceRecordsScreen() {
         console.error("Error in loadData:", err);
 
         // Show user-friendly error message
-        Alert.alert(
+        showAlert(
           'Error',
           'Failed to load attendance records. Please try again.',
-          [{ text: 'OK' }]
+          'error',
+          [{ text: 'OK', onPress: () => { } }]
         );
 
         if (resetData || !isNextPage) {
@@ -309,7 +313,7 @@ export default function AttendanceRecordsScreen() {
   };
 
   const hasActiveFilters = () => {
-    return  statusFilter !== 'all' || sortBy !== 'date' || sortOrder !== 'desc';
+    return statusFilter !== 'all' || sortBy !== 'date' || sortOrder !== 'desc';
   };
 
   const renderRecordItem = ({ item, index }: { item: TransformedAttendanceRecord; index: number }) => {
@@ -579,7 +583,7 @@ export default function AttendanceRecordsScreen() {
                     style={[
                       styles.filterOption,
                       isDark && styles.darkFilterOption,
-                      sortBy  === sort && styles.activeFilterOption, // 👈 last, takes priority
+                      sortBy === sort && styles.activeFilterOption, // 👈 last, takes priority
                     ]}
                     onPress={() => setSortBy(sort as any)}
                   >
@@ -618,6 +622,7 @@ export default function AttendanceRecordsScreen() {
         </View>
 
       </Modal>
+      <AlertComponent />
     </View>
   );
 }

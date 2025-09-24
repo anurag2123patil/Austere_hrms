@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { DatePickerModal } from "react-native-paper-dates";
+import { useAlert } from '@/hooks/useAlert';
 import {
   View,
   Text,
@@ -53,6 +54,8 @@ interface TransformedAttendanceRecord {
 
 export default function Attendance() {
   const today = new Date();
+  const { showAlert, AlertComponent } = useAlert();
+
   const dispatch = useDispatch<AppDispatch>();
   const { theme } = useSelector((state: RootState) => state.auth);
   const { records, stats, isCheckedIn, todayRecord, loading } = useSelector((state: RootState) => state.attendance);
@@ -228,26 +231,25 @@ export default function Attendance() {
   const handleCheckIn = async () => {
     try {
       await dispatch(punchInThunk()).unwrap();
-      Alert.alert('Success', 'Punched In successfully!');
-      // Refresh data after check-in
+      showAlert('Success', 'Punched In successfully!','success');
       dispatch(getAttendanceStatusThunk());
       loadAttendance();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Something went wrong while punching in.';
-      Alert.alert('Error', message);
+      showAlert('Error', message,'error');
     }
   };
 
   const handleCheckOut = async () => {
     try {
       await dispatch(punchOutThunk()).unwrap();
-      Alert.alert('Success', 'Punched Out successfully!');
+      showAlert('Success', 'Punched Out successfully!','success');
       // Refresh data after check-out
       dispatch(getAttendanceStatusThunk());
       loadAttendance();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Something went wrong while punching out.';
-      Alert.alert('Error', message);
+      showAlert('Error', message,'error');
     }
   };
 
@@ -839,7 +841,7 @@ export default function Attendance() {
         </Modal>
 
       )}
-
+    <AlertComponent/>
     </View>
   );
 }

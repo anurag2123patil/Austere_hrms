@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useAlert } from '@/hooks/useAlert';
 import {
     View,
     Text,
@@ -26,6 +27,8 @@ import { useLocalSearchParams } from 'expo-router';
 import { forgotPassword, verifyForgotPassOtp } from '@/api/Api';
 
 export default function OTPVerificationScreen() {
+    const { showAlert, AlertComponent } = useAlert();
+
     const inputRef = useRef<TextInput>(null);
     const { email } = useLocalSearchParams();
     const [otp, setOtp] = useState('');
@@ -101,12 +104,12 @@ export default function OTPVerificationScreen() {
 
     const handleVerifyOTP = async () => {
         if (!email || typeof email !== 'string') {
-            Alert.alert('Missing Email', 'Email not found. Please go back and try again.');
+            showAlert('Missing Email', 'Email not found. Please go back and try again.','info');
             return;
         }
 
         if (otp.length !== 6) {
-            Alert.alert('Invalid OTP', 'Please enter a valid 6-digit code.');
+            showAlert('Invalid OTP', 'Please enter a valid 6-digit code.','error');
             return;
         }
 
@@ -124,7 +127,7 @@ export default function OTPVerificationScreen() {
                 const empNum = response.data?.emp_number;
                 setEmpNumber(empNum);
 
-                Alert.alert('Verified', response.message || 'OTP verified successfully!');
+                showAlert('Verified', response.message || 'OTP verified successfully!','success');
 
                 router.replace({
                     pathname: '/auth/reset-password',
@@ -133,14 +136,14 @@ export default function OTPVerificationScreen() {
                     },
                 });
             } else {
-                Alert.alert('Error', response.message || 'OTP verification failed.');
+                showAlert('Error', response.message || 'OTP verification failed.','error');
                 setOtp('');
                 // Refocus after clearing
                 setTimeout(() => handleOtpBoxPress(), 500);
             }
         } catch (error: any) {
             buttonScale.value = withSpring(1);
-            Alert.alert('Error', error.message || 'OTP verification failed.');
+            showAlert('Error', error.message || 'OTP verification failed.','error');
             setOtp('');
             // Refocus after clearing
             setTimeout(() => handleOtpBoxPress(), 500);
@@ -151,7 +154,7 @@ export default function OTPVerificationScreen() {
 
     const handleResendOTP = async () => {
         if (!email || typeof email !== 'string') {
-            Alert.alert('Missing Email', 'Email not found. Please go back and try again.');
+            showAlert('Missing Email', 'Email not found. Please go back and try again.','info');
             return;
         }
 
@@ -159,17 +162,17 @@ export default function OTPVerificationScreen() {
             const response = await forgotPassword(email);
 
             if (response.status === 'success') {
-                Alert.alert('OTP Sent', response.message || 'A new OTP has been sent to your email.');
+                showAlert('OTP Sent', response.message || 'A new OTP has been sent to your email.','success');
                 setOtp('');
                 setTimeLeft(60);
                 setIsExpired(false);
                 // Refocus after resend
                 setTimeout(() => handleOtpBoxPress(), 500);
             } else {
-                Alert.alert('Error', response.message || 'Failed to resend OTP.');
+                showAlert('Error', response.message || 'Failed to resend OTP.','error');
             }
         } catch (error: any) {
-            Alert.alert('Error', error.message || 'Something went wrong while resending OTP.');
+            showAlert('Error', error.message || 'Something went wrong while resending OTP.','error');
         }
     };
 
@@ -183,8 +186,8 @@ export default function OTPVerificationScreen() {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
             <LinearGradient colors={['#f64137', '#f24637']} style={styles.gradient}>
-                <ScrollView 
-                    contentContainerStyle={styles.scrollContent} 
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
@@ -199,7 +202,7 @@ export default function OTPVerificationScreen() {
                             <Image
                                 source={require('@/assets/images/Austerelogo.png')}
                                 style={styles.logoImage}
-                                resizeMode="contain" 
+                                resizeMode="contain"
                             />
                         </View>
                         <Text style={styles.companyName}>Austere Systems</Text>
@@ -210,17 +213,17 @@ export default function OTPVerificationScreen() {
                         <View style={styles.formCard}>
                             <Text style={styles.formTitle}>OTP Verification</Text>
                             <Text style={styles.formSubtitle}>Enter the 6-digit code sent to your email</Text>
-                            
-                            <TouchableOpacity 
-                                style={styles.otpBoxContainer} 
+
+                            <TouchableOpacity
+                                style={styles.otpBoxContainer}
                                 onPress={handleOtpBoxPress}
                                 activeOpacity={1}
                             >
                                 {[...Array(6)].map((_, index) => (
-                                    <View 
-                                        key={index} 
+                                    <View
+                                        key={index}
                                         style={[
-                                            styles.otpBox, 
+                                            styles.otpBox,
                                             (otp.length === index && isFocused) && styles.activeOtpBox,
                                             otp.length > index && styles.filledOtpBox
                                         ]}
@@ -291,6 +294,7 @@ export default function OTPVerificationScreen() {
                     </Animated.View>
                 </ScrollView>
             </LinearGradient>
+            <AlertComponent />
         </KeyboardAvoidingView>
     );
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAlert } from '@/hooks/useAlert';
 import {
   View,
   Text,
@@ -29,7 +30,6 @@ import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDurationTypes, getLeaveTypes, applyLeave, getMyLeaves, getLeaveStatuses, getLeaveBalances, cancelLeave } from '@/api/Api';
 import { Calendar } from 'react-native-calendars';
-import ScrollPicker from 'react-native-wheel-scroll-picker';
 const { width } = Dimensions.get('window');
 interface LeaveRequest {
   id: number;
@@ -69,6 +69,7 @@ type DurationType = {
 
 export default function Leave() {
   const dispatch = useDispatch();
+  const { showAlert, AlertComponent } = useAlert();
   const { theme } = useSelector((state: RootState) => state.auth);
   const { requests, balances } = useSelector((state: RootState) => state.leave);
   const [apiLeaveTypes, setApiLeaveTypes] = useState<{ id: number; name: string }[]>([]); // ✅ dynamic leave types
@@ -286,7 +287,7 @@ export default function Leave() {
     if (!EmpNumber) return;
 
     if (!leaveForm.startDate || !leaveForm.endDate || !leaveForm.reason || !leaveForm.durationId) {
-      Alert.alert('Error', 'Please fill in all required fields.');
+      showAlert('Error', 'Please fill in all required fields.','error');
       return;
     }
 
@@ -296,14 +297,14 @@ export default function Leave() {
       selectedDuration?.duration_name === 'Specify Time' &&
       (!leaveForm.fromTime || !leaveForm.toTime || leaveForm.calculatedDuration === 0)
     ) {
-      Alert.alert('Error', 'Please provide valid From and To time.');
+      showAlert('Error', 'Please provide valid From and To time.','error');
       return;
     }
 
     try {
       const selectedLeaveType = apiLeaveTypes.find(type => type.name === leaveForm.type);
       if (!selectedLeaveType) {
-        Alert.alert('Error', 'Please select leave type.');
+        showAlert('Error', 'Please select leave type.','error');
         return;
       }
 
@@ -345,7 +346,7 @@ export default function Leave() {
       const response = await applyLeave(payload);
 
       if (response.status === 'success') {
-        Alert.alert('Success', response.message || 'Leave applied successfully');
+        showAlert('Success', response.message || 'Leave applied successfully','success');
         setShowModal(false);
         setLeaveForm({
           type: selectedLeaveType.name,
@@ -361,11 +362,11 @@ export default function Leave() {
         fetchLeaveBalances();
         resetLeaveForm();
       } else {
-        Alert.alert('Failed', response.message || 'Something went wrong');
+        showAlert('Failed', response.message || 'Something went wrong','error');
       }
     } catch (error: any) {
       console.error('Apply Leave Error:', error);
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to apply for leave');
+      showAlert('Error', error?.response?.data?.message || 'Failed to apply for leave','error');
     }
   };
 
@@ -1296,7 +1297,7 @@ export default function Leave() {
                         )}
                         hideArrows={true}
                         hideDayNames={showMonthPicker || showYearPicker}
-                        
+
                         onDayPress={(day) => {
                           if (filters.fromDate && day.dateString < filters.fromDate) return;
                           setFilters((prev) => ({ ...prev, toDate: day.dateString }));
@@ -2975,6 +2976,7 @@ export default function Leave() {
           </View>
         </Modal>
       </View>
+      <AlertComponent/>
     </>
   );
 }

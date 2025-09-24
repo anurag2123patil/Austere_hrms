@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAlert } from '@/hooks/useAlert';
 import {
     View,
     Text,
@@ -24,6 +25,8 @@ import Animated, {
 import { useLocalSearchParams } from 'expo-router';
 import { resetPassword } from '@/api/Api';
 export default function ResetPasswordScreen() {
+    const { showAlert, AlertComponent } = useAlert();
+
     const { emp_number } = useLocalSearchParams();
     console.log('Emp Number:', emp_number);
     const [password, setPassword] = useState('');
@@ -37,7 +40,7 @@ export default function ResetPasswordScreen() {
 
     const handleReset = async () => {
         if (!password || !confirmPassword) {
-            Alert.alert('Missing Fields', 'Please enter and confirm your new password.');
+            showAlert('Missing Fields', 'Please enter and confirm your new password.','info');
             return;
         }
 
@@ -45,15 +48,16 @@ export default function ResetPasswordScreen() {
         const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
 
         if (!strongPasswordRegex.test(password)) {
-            Alert.alert(
+            showAlert(
                 'Weak Password',
-                'Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+                'Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+                'warning'
             );
             return;
         }
 
         if (password !== confirmPassword) {
-            Alert.alert('Password Mismatch', 'Both passwords must match.');
+            showAlert('Password Mismatch', 'Both passwords must match.','error');
             return;
         }
 
@@ -65,18 +69,18 @@ export default function ResetPasswordScreen() {
             console.log('Reset Response:', response);
 
             if (response.status === 'success') {
-                Alert.alert('Success', 'Your password has been reset successfully.');
+                showAlert('Success', 'Your password has been reset successfully.','success');
                 router.replace('/auth/login');
             } else {
                 // Handle specific backend message for old == new password
                 if (response.message === 'Old password cannot be new password') {
-                    Alert.alert('Invalid Password', 'Your new password must be different from the previous one.');
+                    showAlert('Invalid Password', 'Your new password must be different from the previous one.','error');
                 } else {
-                    Alert.alert('Error', response.message || 'Password reset failed.');
+                    showAlert('Error', response.message || 'Password reset failed.','error');
                 }
             }
         } catch (error: any) {
-            Alert.alert('Error', error?.message || 'Something went wrong.');
+            showAlert('Error', error?.message || 'Something went wrong.','error');
         } finally {
             buttonScale.value = withSpring(1);
             setIsSubmitting(false);
@@ -186,6 +190,7 @@ export default function ResetPasswordScreen() {
                     </Animated.View>
                 </ScrollView>
             </LinearGradient>
+            <AlertComponent/>
         </KeyboardAvoidingView>
     );
 }

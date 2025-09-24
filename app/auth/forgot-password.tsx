@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useAlert } from '@/hooks/useAlert';
+
 import {
   View,
   Text,
@@ -23,6 +25,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { forgotPassword } from '@/api/Api';
 export default function ForgotPasswordScreen() {
+  const { showAlert, AlertComponent } = useAlert();
+
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isEmailSent, setIsEmailSent] = useState(false);
@@ -33,12 +37,12 @@ export default function ForgotPasswordScreen() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!email) {
-      Alert.alert('Missing Information', 'Please enter your email address');
+      showAlert('Missing Information', 'Please enter your email address','error');
       return;
     }
 
     if (!emailRegex.test(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address');
+      showAlert('Invalid Email', 'Please enter a valid email address','error');
       setEmail(''); // clear input if email is invalid
       return;
     }
@@ -50,7 +54,7 @@ export default function ForgotPasswordScreen() {
       const res = await forgotPassword(email);
 
       if (res.status === 'success') {
-        Alert.alert('Success', res.message || 'Email sent successfully');
+        showAlert('Success', res.message || 'Email sent successfully','success');
         setIsEmailSent(true);
         setTimeout(() => {
           router.replace({
@@ -59,10 +63,10 @@ export default function ForgotPasswordScreen() {
           });
         }, 1000);
       } else {
-        Alert.alert('Error', res.message || 'Unable to send reset email');
+        showAlert('Error', res.message || 'Unable to send reset email','error');
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Something went wrong');
+      showAlert('Error', err.message || 'Something went wrong','error');
     } finally {
       buttonScale.value = withSpring(1);
       setIsLoading(false);
@@ -161,6 +165,8 @@ export default function ForgotPasswordScreen() {
           </Animated.View>
         </ScrollView>
       </LinearGradient>
+      <AlertComponent />
+
     </KeyboardAvoidingView>
   );
 }

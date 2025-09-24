@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAlert } from '@/hooks/useAlert';
 import {
   View,
   Text,
@@ -68,6 +69,7 @@ export default function WeeklyTimesheetScreen() {
   const dispatch = useDispatch();
   const { theme } = useSelector((state: RootState) => state.auth);
   const { entries } = useSelector((state: RootState) => state.timesheet);
+  const { showAlert, AlertComponent } = useAlert();
 
   const isDark = theme === 'dark';
   const [showModal, setShowModal] = useState(false);
@@ -120,7 +122,7 @@ export default function WeeklyTimesheetScreen() {
         const data = await fetchProjectsDropdown();
         setProjectList(data);
       } catch (err) {
-        Alert.alert('Error', 'Failed to load projects');
+        showAlert('Error', 'Failed to load projects', 'error');
       } finally {
         setLoadingProjects(false);
       }
@@ -140,7 +142,7 @@ export default function WeeklyTimesheetScreen() {
       const data = await fetchActivitiesDropdown(projectId);
       setActivityList(data);
     } catch (err) {
-      Alert.alert('Error', 'Failed to load activities');
+      showAlert('Error', 'Failed to load activities', 'error');
     } finally {
       setLoadingActivities(false);
     }
@@ -206,7 +208,7 @@ export default function WeeklyTimesheetScreen() {
         dispatch(addTimesheetEntry(entry));
       });
     } catch (error) {
-      Alert.alert('Error', 'Failed to fetch timesheet data');
+      showAlert('Error', 'Failed to fetch timesheet data', 'error');
     } finally {
       setLoading(false);
     }
@@ -295,13 +297,13 @@ export default function WeeklyTimesheetScreen() {
   const handleAddEntry = async () => {
     try {
       if (!entryForm.projectId || !entryForm.activityId || !entryForm.hours || !selectedDate) {
-        Alert.alert('Validation Error', 'Please fill all required fields.');
+        showAlert('Validation Error', 'Please fill all required fields.', 'error');
         return;
       }
 
       const rawHours = parseFloat(entryForm.hours);
       if (isNaN(rawHours) || rawHours <= 0 || rawHours > 24) {
-        Alert.alert('Invalid Hours', 'Hours must be between 0 and 24.');
+        showAlert('Invalid Hours', 'Hours must be between 0 and 24.', 'error');
         return;
       }
       const dayEntries = getEntriesForDate(selectedDate);
@@ -311,9 +313,10 @@ export default function WeeklyTimesheetScreen() {
         .reduce((sum, e) => sum + parseFloat(e.hours || 0), 0);
 
       if (totalSoFar + rawHours > 24) {
-        Alert.alert(
+        showAlert(
           'Invalid Hours',
-          `You already logged ${totalSoFar}h on ${new Date(selectedDate).toDateString()}. Total cannot exceed 24h.`
+          `You already logged ${totalSoFar}h on ${new Date(selectedDate).toDateString()}. Total cannot exceed 24h.`,
+          'error'
         );
         return;
       }
@@ -344,14 +347,14 @@ export default function WeeklyTimesheetScreen() {
       console.log('Final timesheet payload:', payload);
       await saveTimesheetEntry(payload);
       await loadTimesheetData();
-      Alert.alert('Success', editingEntry ? 'Entry updated.' : 'Entry added.');
+      showAlert('Success', editingEntry ? 'Entry updated.' : 'Entry added.', 'success');
       resetEntryForm();
       // Reset form state
       setEntryForm({ project: '', projectId: null, activity: '', activityId: null, hours: '', comment: '' });
       setEditingEntry(null);
       setShowModal(false);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to save timesheet.');
+      showAlert('Error', err.message || 'Failed to save timesheet.', 'error');
     }
   };
 
@@ -375,38 +378,34 @@ export default function WeeklyTimesheetScreen() {
   };
 
   const handledeleteEntry = async (entry: any) => {
-    Alert.alert(
-      "Alert",
+    showAlert(
+      "Confirm Delete",
       "Are you sure you want to delete this entry?",
+      'warning',
       [
         {
           text: "Cancel",
+          onPress: () => { },
           style: "cancel",
         },
         {
-          text: "OK",
+          text: "Delete",
           onPress: async () => {
             try {
-              // Check if timesheet_item_id exists
               if (!entry.timesheet_item_id) {
-                Alert.alert("Error", "Cannot delete entry: No timesheet item ID found");
+                showAlert("Error", "Cannot delete entry: No timesheet item ID found", 'error');
                 return;
               }
-
-              // Call the delete API with timesheet_item_id
               await deleteTimesheetEntry(entry.timesheet_item_id);
-
-              // Remove from Redux store
               dispatch(removeTimesheetEntry(entry.id));
-
-              Alert.alert("Success", "Entry deleted successfully");
+              showAlert("Success", "Entry deleted successfully", 'success');
             } catch (error: any) {
-              Alert.alert("Error", error.message || "Failed to delete entry");
+              showAlert("Error", error.message || "Failed to delete entry", 'error');
             }
           },
+          style: 'destructive',
         },
-      ],
-      { cancelable: true }
+      ]
     );
   };
 
@@ -415,7 +414,8 @@ export default function WeeklyTimesheetScreen() {
       const uniqueTimesheetIds = [...new Set(Object.values(timesheetMap))];
 
       if (uniqueTimesheetIds.length === 0) {
-        Alert.alert('No Timesheet', 'No timesheet entries to submit.');
+        showAlert('No Timesheet', 'No timesheet entries to submit.', 'warning');
+
         return;
       }
 
@@ -424,13 +424,13 @@ export default function WeeklyTimesheetScreen() {
       const result = await submitTimesheet(timesheetIdToSubmit);
 
       if (result.status === 'success') {
-        Alert.alert('Success', 'Timesheet submitted successfully.');
+        showAlert('Success', 'Timesheet submitted successfully.', 'success');
         loadTimesheetData(); // Refresh data if needed
       } else {
-        Alert.alert('Error', result.message || 'Failed to submit timesheet.');
+        showAlert('Error', result.message || 'Failed to submit timesheet.', 'error');
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'An unexpected error occurred.');
+      showAlert('Error', error.message || 'An unexpected error occurred.', 'error');
     }
   };
 
@@ -1316,9 +1316,11 @@ export default function WeeklyTimesheetScreen() {
                 </LinearGradient>
               </TouchableOpacity>
             </ScrollView>
+
           </KeyboardAvoidingView>
         </TouchableWithoutFeedback>
       </Modal>
+      <AlertComponent />
     </>
   );
 }
