@@ -1,0 +1,34 @@
+npm install
+npx expo start
+npm install -g @expo/eas-cli
+eas login
+eas build:configure
+
+
+# Development build (includes dev tools)
+eas build --platform android --profile development
+
+# Preview build (for internal testing)
+eas build --platform android --profile preview
+
+# Production build (for Google Play Store)
+eas build --platform android --profile production
+
+# Development build
+eas build --platform ios --profile development
+
+# Preview build (for TestFlight)
+eas build --platform ios --profile preview
+
+# Production build (for App Store)
+eas build --platform ios --profile production
+
+📱 Build for Both Platforms
+eas build --platform all --profile production
+
+
+# For immediate testing (Android)
+eas build --platform android --profile preview
+
+# For App Store submission
+eas build --platform all --profile production
